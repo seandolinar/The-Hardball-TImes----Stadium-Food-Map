@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
+<script src="http://maps.googleapis.com/maps/api/js"></script>
+
+<style>
+    
+    .map-title {
+        position: absolute;
+        z-index: 5;
+        background-color: rgba(255, 255, 255, .9);
+        padding: 5px;
+        border: 1px solid #999;
+        text-align: center;
+        line-height: 30px;
+        padding-left: 10px;
+        font-family: Lato, Arial;
+        font-size: 24px;
+    }
+</style>
+
+
+<script>
+var stadiums = [{
+    name: 'PNC Park',
+    lat: 40.446944,
+    long: -80.005833,
+    team: 'PIT',
+    cityBounds: new google.maps.LatLngBounds(new google.maps.LatLng(40.361369, -80.095278), new google.maps.LatLng(40.501368, -79.865723)),
+    cityCenter: new google.maps.LatLng(40.440625, -79.995886),
+    cityZoom: 13
+},
+{
+    name: 'Wrigley Field',
+    lat: 41.948333, 
+    long: -87.655556,
+    team: 'CHC',
+    cityBounds: new google.maps.LatLngBounds(new google.maps.LatLng(41.644335, -87.940267), new google.maps.LatLng(42.023131, -87.524044)),
+    cityCenter: new google.maps.LatLng(41.909442,-87.634983),
+    cityZoom: 11
+
+},
+{
+    name: 'U.S. Cellular Field',
+    lat: 41.82989,
+    long: -87.633485,
+    team: 'CHC',
+    cityBounds: new google.maps.LatLngBounds(new google.maps.LatLng(41.644335, -87.940267), new google.maps.LatLng(42.023131, -87.524044)),
+    cityCenter: new google.maps.LatLng(41.909442,-87.634983),
+    cityZoom: 11
+},
+{
+    name: 'Dodger Stadium',
+    lat: 34.073611,
+    long: -118.24,
+    team: 'LAD'
+}]
+    
+var places = {
+    PIT: [{
+        name: 'Burgatory',
+        dist: '.2 mi',
+        lat: 40.446944,
+        long: -80.009833,
+        address: '342 N Shore Dr, Pittsburgh, PA 15212',
+        url: 'http://www.burgatorybar.com/',
+        desc: 'Burgatory is about a 10 minute walk from PNC Park and is located near Stage AE. Not only do they have some pretty wild combinations as far as hamburgers go, they have boozy milkshakes that are terrific.'
+    },
+    {
+        name: 'Rivertowne North Shore',
+        dist: '.2 mi',
+        lat: 40.4458793,
+        long: -80.0126523,
+        url: 'http://www.myrivertowne.com/restaurant/index.asp',
+        address: '337 North Shore Drive, Pittsburgh, PA 15212',
+        desc: 'Rivertowne North Shore is located just about across the street from Burgatory and is in the same building as the Root Sports Pittsburgh office. They have the standard offerings of sandwiches, hamburgers and other snacks. They also brew their own beer and since their beers are not distributed too far outside of the city, it may be worth it to check it out and try something unique to the area. Rivertowne also has a location in PNC Park, near the scoreboard in case you want to check it out while inside the ballpark. - Ethan Obstarcyzk'
+    },
+    {
+        name: 'Primanti Bros.',
+        dist: '1.5 mi',
+        lat: 40.4507166,
+        long: -79.9877019,
+        address: '342 N Shore Dr, Pittsburgh, PA 15212',
+        url: 'http://www.burgatorybar.com/',
+        desc: 'Burgatory is about a 10 minute walk from PNC Park and is located near Stage AE. Not only do they have some pretty wild combinations as far as hamburgers go, they have boozy milkshakes that are terrific.'
+
+    },
+    {
+        name: 'Jerome Bettis Grille 36',
+        dist: '.3 mi',
+        address: 'North Shore Riverfront Park, 393 N Shore Dr, Pittsburgh, PA 15212',
+        url: 'https://jeromebettisgrille36.g3restaurants.com/',
+        lat: 40.445617,
+        long: -80.011371,
+        desc: "For being a big, generic sports bar named after a former player, Bettis' bar on the north shore outside PNC Park has a surprising beer selection and good bar food. I can't recommend the deep fried pretzels strongly enough. - Jeff Moore"
+    },
+    {
+        name: "Peppi's",
+        dist: '1.4 mi',
+        address: '1721 Penn Ave, Pittsburgh, PA 15222',
+        url: 'http://peppisubs.com/',
+        address: '1721 Penn Ave, Pittsburgh, PA 15222',
+        lat: 40.450205,
+        long: -79.985649,
+        desc: "From the department of cheap and local, Peppi's has a location on Smithfield Street downtown, and they do classic East Coast hoagies in a very impressive manner. I personally go for either the cheesesteak or the hot sausage sub, but there are a lot of good options."
+    },
+    {
+        name: "Peppi's",
+        address: '927 Western Ave, Pittsburgh, PA 15233',
+        dist: '.9 mi',
+        url: 'http://peppisubs.com/',
+        lat: 40.451622,
+        long: -80.017499,
+        desc: "From the department of cheap and local, Peppi's has a location on Smithfield Street downtown, and they do classic East Coast hoagies in a very impressive manner. I personally go for either the cheesesteak or the hot sausage sub, but there are a lot of good options."
+    },
+    {
+        name: "Sal's Deli",
+        dist: '.6 mi',
+        address: '245 7th St, Pittsburgh, PA 15222',
+        url: '',
+        lat: 40.4426535,
+        long: -80.0020152,
+        desc: "From the department of cheap and local, Peppi's has a location on Smithfield Street downtown, and they do classic East Coast hoagies in a very impressive manner. I personally go for either the cheesesteak or the hot sausage sub, but there are a lot of good options."
+    }],
+    CHC: [{
+        name: 'Crisp',
+        lat: 41.9360871,
+        long: -87.6467362,
+        address: '2940 N Broadway St, Chicago, IL 60657',
+        url: 'http://www.crisponline.com/crisp.aspx',
+        desc: "Crisp (Korean fried chicken) on North Broadway if you're willing to venture more than a couple blocks. It's about a 10 minute walk from the marquee at Wrigley. - Adam Brown"
+    }],
+    LAD: [{
+        name: 'Crisp',
+        lat: 41.9360871,
+        long: -87.6467362,
+        address: '2940 N Broadway St, Chicago, IL 60657',
+        url: 'http://www.crisponline.com/crisp.aspx',
+        desc: "Crisp (Korean fried chicken) on North Broadway if you're willing to venture more than a couple blocks. It's about a 10 minute walk from the marquee at Wrigley. - Adam Brown"
+    }]
+}
+    
+//click PLACE
+
+    
+    
+    
+    
+function initialize() {
+    
+    
+    
+  var mapProp = {
+    center: new google.maps.LatLng(39.833333, -98.583333),
+    zoom:4,
+    mapTypeId:google.maps.MapTypeId.ROADMAP,
+    zoomControl: true,
+    mapTypeControl: false,
+    scaleControl: true,
+    streetViewControl: false,
+    rotateControl: false,
+    fullscreenControl: false
+  };
+  var map = new google.maps.Map(document.getElementById("googleMap"),mapProp);
+  var markers = [];
+  
+  var infowindow = new google.maps.InfoWindow({maxWidth:400});
+  
+  function clickPlace(d, e, mark) {
+    
+        //$('#description').html(d.desc)        
+        infowindow.setContent('<div style="font-size: 18px;" >' + e.name + ' (' + e.dist + ' from ' + d.name + ')</div>' +
+             '<a href="'+ e.url + '">' + e.url + '</a><br>' + e.address + '<br>' + e.desc);
+        infowindow.open(map, mark);
+  }
+  
+  
+  
+  stadiums.forEach(function(c) {
+      var marker = new google.maps.Marker({
+            position:new google.maps.LatLng(c.lat, c.long),
+            icon:  {
+                url: '26bea.png',
+                origin: new google.maps.Point(0, 0),
+                anchor: new google.maps.Point(10, 10)
+            }
+        })
+        marker.setMap(map);
+
+        marker.addListener('mouseover', function() { 
+                infowindow.setContent(c.name)
+                infowindow.open(map, this);
+        })
+        marker.addListener('mouseout', function() {
+                infowindow.close();
+        })
+        
+        //click STADIUM
+        function clickStadiumClose() {
+                map.setZoom(15);
+                map.setCenter(marker.getPosition());
+                $('.map-title').text('Nearby ' + c.name)
+                
+        }
+        
+        function createMarkers() {
+            
+             ['PIT', 'CHC', 'LAD'].forEach(function(e) {
+                places[e].forEach(function(d) {
+
+                var markerPlace = new google.maps.Marker({
+                    position:new google.maps.LatLng(d.lat, d.long),
+                    icon:  {
+                        url: '1f535.png',
+                        origin: new google.maps.Point(0, 0),
+                        anchor: new google.maps.Point(10, 10)
+                    }
+                })
+                markerPlace.setMap(map);
+
+                
+                function clickPlaceBack() {
+                    clickPlace(c, d, this)
+                }                     
+                markerPlace.addListener('click', clickPlaceBack)
+                markers.push(markerPlace);
+            })
+             })
+
+        }
+        
+        
+        function clickStadiumCity() {
+
+                map.fitBounds(c.cityBounds)
+                map.setCenter(c.cityCenter);
+                map.setZoom(c.cityZoom);
+                
+                $('.map-title').text(c.team)
+                
+                createMarkers(c)
+                
+                this.addListener('click', clickStadiumClose)
+                
+        }
+        
+        
+        marker.addListener('click', clickStadiumCity);
+        var closeCircle = new google.maps.Circle({
+                strokeColor: '#FF0000',
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: '#FF5920',
+                fillOpacity: 0.25,
+                map: map,
+                center: marker.getPosition(),
+                radius: 1609.34/2
+            });
+                        
+        });
+        
+          map.addListener('zoom_changed', function() { 
+              if (map.getZoom() <= 12) {
+
+                markers.forEach(function(d) {
+                    console.log(d)
+                    d.setMap(null);
+                })
+              }
+          })
+}
+
+google.maps.event.addDomListener(window, 'load', initialize);
+
+
+
+</script>
+</head>
+
+<body>
+<div class="map-title">US/Canada</div>
+<div id="googleMap" style="width:740px;height:500px;"></div>
+<div id="description"></div>
+</body>
+
+</html>

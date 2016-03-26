@@ -1,40 +1,89 @@
 <!DOCTYPE html>
 <html>
 <head>
-<script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
+<script src="http://code.jquery.com/jquery-1.12.0.min.js"></script>
 <script src="http://maps.googleapis.com/maps/api/js"></script>
 
-<style>
-    #viz-container {
-        width:740px;
+    <link href='http://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css' />
 
+<style>
+    body {
+        margin: 0px;
     }
-    .map-container {
-        width: 740px;
+    
+    #viz-container {
+        width:100%;
+        max-width: 740px;
+        position: relative;
+    }
+    
+    #viz-load {
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        width: 100%;
+        height: 100%;
+        background-color: green;
+        z-index: 999;
+    }
+      
+    #viz-title {
+        font-size: 30px;
+        font-family: Lato, Arial;
+        padding-bottom: 10px;
+        padding-left: 5px;
+        background-color: #8e001c;
+        color: #FFFFFF;
+    }
+   
+   #map-container {
+        width: 100%;
         height:500px;
+        max-width: 740px;
+        border-top: 2px solid #8e001c;
+        border-bottom: 2px solid #8e001c;
     }
     .map-title {
         position: absolute;
         z-index: 5;
         background-color: rgba(255, 255, 255, .9);
         padding: 5px;
-        border: 1px solid #999;
+        border: 1px solid #8e001c;
         text-align: center;
         line-height: 30px;
         padding-left: 10px;
         font-family: Lato, Arial;
         font-size: 24px;
     }
+    
+    
+    .place-name {
+        font-weight: 400;
+    }
+    
+    
+    
+    
+    
     #desc-container {
         font-family: Lato, Arial;
         margin-top: 20px;
+        margin-left: 5px;
+        
     }
     #desc-title {
         font-size: 28px;
     }
+    #desc-body {
+        height: 300px;
+        overflow-y: auto;
+        clear: both;
+    }
+    
+    
     .button {
 
-        background-color: #F5F5F5;
+        background-color: #C5C5C5;
         line-height: 2.2;
         cursor: pointer;
         text-align: center;
@@ -48,11 +97,13 @@
     .reset {
         float: right;
         margin-right: 20px;
+        margin-bottom: 10px;
         padding: 0 10px;
     }
 </style>
 
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
 <script>
 
     
@@ -94,8 +145,8 @@ var stadiums = [{
 // }
 ]
     
-var stadiums = [{"name": "Rogers Centre", "cityCenterLat": "43.6532372", "teamName": "Toronto Blue Jays", "cityZoom": "12", "long": "-79.3915419", "team": "TOR", "lat": "43.6414378", "cityCenterLong": "-79.4072797"},{"name": "AT&T Park", "cityCenterLat": "37.7576948", "teamName": "San Francisco Giants", "cityZoom": "13", "long": "-122.3914585", "team": "SF", "lat": "37.7785951", "cityCenterLong": "-122.4726193"},{"name": "Dodger Stadium", "cityCenterLat": "34.0318474", "teamName": "Los Angeles Dodgers", "cityZoom": "12", "long": "-118.2428043", "team": "LAD", "lat": "34.0727356", "cityCenterLong": "-118.4083263"},{"name": "Wrigley Field", "cityCenterLat": "41.9016557", "teamName": "Chicago Cubs", "cityZoom": "11", "long": "-87.6575214,17", "team": "CHC", "lat": "41.9484384", "cityCenterLong": "-87.7455511"},{"name": "Kauffman Stadium", "cityCenterLat": "39.0846553", "teamName": "Kansas City Royals", "cityZoom": "12", "long": "-94.4825029", "team": "KC", "lat": "39.0516719", "cityCenterLong": "-94.6258697"},{"name": "Chase Field", "cityCenterLat": "33.4528429", "teamName": "Arizona Diamondbacks", "cityZoom": "12", "long": "-112.0709036", "team": "ARZ", "lat": "33.446191", "cityCenterLong": "-112.1480808"},{"name": "Citi Field", "cityCenterLat": "40.7634318", "teamName": "New York Mets", "cityZoom": "14", "long": "-73.84801", "team": "NYM", "lat": "40.7570877", "cityCenterLong": "-73.9178952"},{"name": "Minute Maid Park", "cityCenterLat": "29.7489884", "teamName": "Houston Astros", "cityZoom": "13", "long": "-95.3577072", "team": "HOU", "lat": "29.7572684", "cityCenterLong": "-95.3801128"},{"name": "Busch Stadium", "cityCenterLat": "38.6282746", "teamName": "St. Louis Cardinals", "cityZoom": "13", "long": "-90.1950096", "team": "STL", "lat": "38.6226188", "cityCenterLong": "-90.2659512"},{"name": "Progressive Field", "cityCenterLat": "41.4920926", "teamName": "Cleveland Indians", "cityZoom": "14", "long": "-81.6874176", "team": "CLE", "lat": "41.496211", "cityCenterLong": "-81.7123846"},{"name": "PNC Park", "cityCenterLat": "40.4425426", "teamName": "Pittsburgh Pirates", "cityZoom": "15", "long": "-80.0078544", "team": "PIT", "lat": "40.4468548", "cityCenterLong": "-80.0073648"},{"name": "Ballpark In Arlington", "cityCenterLat": "32.7576717", "teamName": "Texas Rangers", "cityZoom": "12", "long": "-97.085342", "team": "TEX", "lat": "32.7546789", "cityCenterLong": "-97.0940064"},{"name": "Comerica Park", "cityCenterLat": "42.3476747", "teamName": "Detriot Tigers", "cityZoom": "13", "long": "-83.0495301", "team": "DET", "lat": "42.336728", "cityCenterLong": "-83.1499049"},{"name": "Tropicana Field", "cityCenterLat": "27.8731834", "teamName": "Tampa Bay Rays", "cityZoom": "12", "long": "-82.6555808", "team": "TB", "lat": "27.7682246", "cityCenterLong": "-82.6439947"},{"name": "Yankee Stadium", "cityCenterLat": "40.8053498", "teamName": "New York Yankees", "cityZoom": "14", "long": "-73.9278355", "team": "NYY", "lat": "40.8279844", "cityCenterLong": "-73.9510298"},{"name": "Nationals Park", "cityCenterLat": "38.8860364", "teamName": "Washington Nationals", "cityZoom": "14", "long": "-77.0096216", "team": "WAS", "lat": "38.8730102", "cityCenterLong": "-77.0155123"},{"name": "Fenway Park", "cityCenterLat": "42.3532618", "teamName": "Boston Red Sox", "cityZoom": "15", "long": "-71.0994065", "team": "BOS", "lat": "42.3466764", "cityCenterLong": "-71.0650979"},{"name": "Angel Stadium of Anaheim", "cityCenterLat": "33.8272761", "teamName": "Los Angeles Angels", "cityZoom": "13", "long": "-117.8849208", "team": "LAA", "lat": "33.800308", "cityCenterLong": "-117.9945652"},{"name": "Oriole Park at Camden Yards", "cityCenterLat": "39.2858246", "teamName": "Baltimore Orioles", "cityZoom": "14", "long": "-76.623797", "team": "BAL", "lat": "39.2839644", "cityCenterLong": "-76.6158193"},{"name": "Great American Ball Park", "cityCenterLat": "39.1045172", "teamName": "Cincinnati Reds", "cityZoom": "14", "long": "-84.5083302", "team": "CIN", "lat": "39.0972876", "cityCenterLong": "-84.5229417"},{"name": "Marlins Park", "cityCenterLat": "25.7533208", "teamName": "Miami Marlins", "cityZoom": "13", "long": "-80.2219212", "team": "MIA", "lat": "25.7780542", "cityCenterLong": "-80.2532861"},{"name": "Safeco Field", "cityCenterLat": "47.6039759", "teamName": "Seattle Mariners", "cityZoom": "14", "long": "-122.3280193", "team": "SEA", "lat": "47.5918624", "cityCenterLong": "-122.3432119"},{"name": "O.co Coliseum", "cityCenterLat": "37.7759263", "teamName": "Oakland Athletics", "cityZoom": "13", "long": "-122.2027345", "team": "OAK", "lat": "37.7515946", "cityCenterLong": "-122.2402212"},{"name": "Petco Park", "cityCenterLat": "32.7448287", "teamName": "San Diego Padres", "cityZoom": "13", "long": "-117.1592008", "team": "SD", "lat": "32.7073388", "cityCenterLong": "-117.1921092"},{"name": "Turner Field", "cityCenterLat": "33.7591656", "teamName": "Atlanta Braves", "cityZoom": "15", "long": "-84.391041", "team": "ATL", "lat": "33.7367278", "cityCenterLong": "-84.3979336"},{"name": "Target Field", "cityCenterLat": "44.9769023", "teamName": "Minnesota Twins", "cityZoom": "14", "long": "-93.2799651", "team": "MIN", "lat": "44.9816528", "cityCenterLong": "-93.2787745"},{"name": "Miller Park", "cityCenterLat": "43.0385762", "teamName": "Milwauke Brewers", "cityZoom": "13", "long": "-87.9718923", "team": "MIL", "lat": "43.0254303", "cityCenterLong": "-87.9584379"},{"name": "Coors Field", "cityCenterLat": "39.7485088", "teamName": "Colorado Rockies", "cityZoom": "13", "long": "-104.9963668", "team": "COL", "lat": "39.7558823", "cityCenterLong": "-104.9913664"},{"name": "Citizens Bank Park", "cityCenterLat": "39.9317775", "teamName": "Philadelphia Phillies", "cityZoom": "13", "long": "-75.1686839", "team": "PHI", "lat": "39.9060572", "cityCenterLong": "-75.1672523"},{"name": "U.S. Cellular Field", "cityCenterLat": "41.9016557", "teamName": "Chicago White Sox", "cityZoom": "11", "long": "41.8298896,-87.6356733", "team": "CHW", "lat": "41.8298896", "cityCenterLong": "-87.7455511"}]
- 
+var stadiums = [{"name": "Rogers Centre", "cityCenterLat": "43.6532372", "null": [""], "teamName": "Toronto Blue Jays", "cityZoom": "12", "long": "-79.389353", "team": "TOR", "lat": "43.641438", "cityCenterLong": "-79.4072797", "desc": "<p>Pittsburgh is a city made up of many nationalities, the majority of the residents being descendents of countries in Europe. Because of that, the chefs at PNC Park have started to incorporate these flavors into some of the menu items. Sure, you can get nachos or a pretzel, but don\\u2019t you want to try something like the pulled pork pierogi stacker, found at Manny\\u2019s BBQ behind centerfield? As a bonus, during most games Manny Sanguillen is there signing autographs too.</p><p>Pittsburghers love french fries; on their own, on a salad or on a sandwich. If you are in the mood for a Pittsburgh staple, head over to Primanti Brothers behind section 110 to get a sandwich that will have the french fries and coleslaw jammed right into the middle of it.  \\u2014 Ethan Obstarcyzk</p><p> For my money, the best buy at PNC Park is the house-smoked Pulled Pork Pierogi Stacker. Though Pittsburgh is far too well-known for its Primanti Bros. sandwiches \\u2014 french fries and thinly sliced deli meat piled high on huge slabs of white bread \\u2014 what could be more Pittsburgh than house-smoked pulled pork, caramelized onions, and a couple pierogis stacked inside a salty pretzel bun slathered with onion glaze? It\\u2019s been a fan favorite for years now. Stop by Manny\\u2019s BBQ in center field to give the pulled pork and pierogi stacker a try. The BBQ stand is named after Manny Sanguillen, a former Pirates catcher and three-time All-Star who is a familiar, smiling, everyday staple at Pirates home games. \\u2014 Stephen Nesbitt</p><p>As you get down the 1B/RF concourse at PNC Park (as in, moving from home plate to the right field corner), there's a stretch of local food places that's usually where I find myself eating: Primanti Brothers, Quaker Steak and Lube, and I believe BRGR are all there. It's hard to beat Manny Sanguillen's BBQ out in centerfield behind the bullpens, though, because the pulled pork sandwiches are excellent and Manny himself occasionally hangs out there to sign tickets, bobbleheads, programs, whatever else you might have.\\240 \\u2014 Pat Lackey</p><p>The Federal Street Grille (first level, section 116, behind home plate. There are other locations, but this one I know best) does a killer gigantic footlong hot dog smothered in onions and peppers. Its a really, really legitimate ballpark dog, one of the best I've ever had. That would be my top recommendation. There are some other worthy contenders, including the Pittsburgh Pulled Pork Pierogi Stacker (Pierogis are a Pittsburgh favorite) and the BRGR hamburger and shake (located in the same area as the Federal Street Grill). The former is a very unique, one-of-a-kind food, highly AMERICANtm because it involves stacking unhealthy, doughy, buttery, pierogies on top of pork. The latter is just a damn solid hamburger, well above your average ballpark fair. All told, though, for my money the giant hot dog is king. \\u2014 Paul Johnson</p>"},{"name": "AT&T Park", "cityCenterLat": "37.7576948", "null": [""], "teamName": "San Francisco Giants", "cityZoom": "13", "long": "-122.38927", "team": "SF", "lat": "37.778595", "cityCenterLong": "-122.4726193", "desc": "<p></p>"},{"name": "Dodger Stadium", "cityCenterLat": "34.0318474", "null": [""], "teamName": "Los Angeles Dodgers", "cityZoom": "12", "long": "-118.240616", "team": "LAD", "lat": "34.072736", "cityCenterLong": "-118.4083263", "desc": "<p></p>"},{"name": "Wrigley Field", "cityCenterLat": "41.9016557", "null": [""], "teamName": "Chicago Cubs", "cityZoom": "11", "long": "-87.655333", "team": "CHC", "lat": "41.948438", "cityCenterLong": "-87.7455511", "desc": "<p></p>"},{"name": "Kauffman Stadium", "cityCenterLat": "39.0846553", "null": [""], "teamName": "Kansas City Royals", "cityZoom": "12", "long": "-94.480314", "team": "KC", "lat": "39.051672", "cityCenterLong": "-94.6258697", "desc": "<p></p>"},{"name": "Chase Field", "cityCenterLat": "33.4528429", "null": [""], "teamName": "Arizona Diamondbacks", "cityZoom": "12", "long": "-112.068715", "team": "ARZ", "lat": "33.446191", "cityCenterLong": "-112.1480808", "desc": "<p></p>"},{"name": "Citi Field", "cityCenterLat": "40.7634318", "null": [""], "teamName": "New York Mets", "cityZoom": "14", "long": "-73.845821", "team": "NYM", "lat": "40.757088", "cityCenterLong": "-73.9178952", "desc": "<p></p>"},{"name": "Minute Maid Park", "cityCenterLat": "29.7489884", "null": [""], "teamName": "Houston Astros", "cityZoom": "13", "long": "-95.355519", "team": "HOU", "lat": "29.757268", "cityCenterLong": "-95.3801128", "desc": "<p></p>"},{"name": "Busch Stadium", "cityCenterLat": "38.6282746", "null": [""], "teamName": "St. Louis Cardinals", "cityZoom": "13", "long": "-90.192821", "team": "STL", "lat": "38.622619", "cityCenterLong": "-90.2659512", "desc": "<p></p>"},{"name": "Progressive Field", "cityCenterLat": "41.4920926", "null": [""], "teamName": "Cleveland Indians", "cityZoom": "14", "long": "-81.685229", "team": "CLE", "lat": "41.496211", "cityCenterLong": "-81.7123846", "desc": "<p></p>"},{"name": "PNC Park", "cityCenterLat": "40.4425426", "null": [""], "teamName": "Pittsburgh Pirates", "cityZoom": "15", "long": "-80.005666", "team": "PIT", "lat": "40.446855", "cityCenterLong": "-80.0073648", "desc": "<p></p>"},{"name": "Ballpark In Arlington", "cityCenterLat": "32.7576717", "null": [""], "teamName": "Texas Rangers", "cityZoom": "12", "long": "-97.082509", "team": "TEX", "lat": "32.751244", "cityCenterLong": "-97.0940064", "desc": "<p></p>"},{"name": "Comerica Park", "cityCenterLat": "42.3476747", "null": [""], "teamName": "Detriot Tigers", "cityZoom": "13", "long": "-83.04852", "team": "DET", "lat": "42.338998", "cityCenterLong": "-83.1499049", "desc": "<p></p>"},{"name": "Tropicana Field", "cityCenterLat": "27.8731834", "null": [""], "teamName": "Tampa Bay Rays", "cityZoom": "12", "long": "-82.653392", "team": "TB", "lat": "27.768225", "cityCenterLong": "-82.6439947", "desc": "<p></p>"},{"name": "Yankee Stadium", "cityCenterLat": "40.8053498", "null": [""], "teamName": "New York Yankees", "cityZoom": "14", "long": "-73.926174", "team": "NYY", "lat": "40.829643", "cityCenterLong": "-73.9510298", "desc": "<p></p>"},{"name": "Nationals Park", "cityCenterLat": "38.8860364", "null": [""], "teamName": "Washington Nationals", "cityZoom": "14", "long": "-77.007433", "team": "WAS", "lat": "38.87301", "cityCenterLong": "-77.0155123", "desc": "<p></p>"},{"name": "Fenway Park", "cityCenterLat": "42.3532618", "null": [""], "teamName": "Boston Red Sox", "cityZoom": "15", "long": "-71.097218", "team": "BOS", "lat": "42.346676", "cityCenterLong": "-71.0650979", "desc": "<p></p>"},{"name": "Angel Stadium of Anaheim", "cityCenterLat": "33.8272761", "null": [""], "teamName": "Los Angeles Angels", "cityZoom": "13", "long": "-117.882732", "team": "LAA", "lat": "33.800308", "cityCenterLong": "-117.9945652", "desc": "<p></p>"},{"name": "Oriole Park at Camden Yards", "cityCenterLat": "39.2858246", "null": [""], "teamName": "Baltimore Orioles", "cityZoom": "14", "long": "-76.620614", "team": "BAL", "lat": "39.282888", "cityCenterLong": "-76.6158193", "desc": "<p></p>"},{"name": "Great American Ball Park", "cityCenterLat": "39.1045172", "null": [""], "teamName": "Cincinnati Reds", "cityZoom": "14", "long": "-84.508151", "team": "CIN", "lat": "39.097931", "cityCenterLong": "-84.5229417", "desc": "<p></p>"},{"name": "Marlins Park", "cityCenterLat": "25.7533208", "null": [""], "teamName": "Miami Marlins", "cityZoom": "13", "long": "-80.219732", "team": "MIA", "lat": "25.778054", "cityCenterLong": "-80.2532861", "desc": "<p></p>"},{"name": "Safeco Field", "cityCenterLat": "47.6039759", "null": [""], "teamName": "Seattle Mariners", "cityZoom": "14", "long": "-122.332345", "team": "SEA", "lat": "47.591429", "cityCenterLong": "-122.3432119", "desc": "<p></p>"},{"name": "O.co Coliseum", "cityCenterLat": "37.7759263", "null": [""], "teamName": "Oakland Athletics", "cityZoom": "13", "long": "-122.200546", "team": "OAK", "lat": "37.751595", "cityCenterLong": "-122.2402212", "desc": "<p></p>"},{"name": "Petco Park", "cityCenterLat": "32.7448287", "null": [""], "teamName": "San Diego Padres", "cityZoom": "13", "long": "-117.157012", "team": "SD", "lat": "32.707339", "cityCenterLong": "-117.1921092", "desc": "<p></p>"},{"name": "Turner Field", "cityCenterLat": "33.7591656", "null": [""], "teamName": "Atlanta Braves", "cityZoom": "15", "long": "-84.389973", "team": "ATL", "lat": "33.734808", "cityCenterLong": "-84.3979336", "desc": "<p></p>"},{"name": "Target Field", "cityCenterLat": "44.9769023", "null": [""], "teamName": "Minnesota Twins", "cityZoom": "14", "long": "-93.277776", "team": "MIN", "lat": "44.981653", "cityCenterLong": "-93.2787745", "desc": "<p></p>"},{"name": "Miller Park", "cityCenterLat": "43.0385762", "null": [""], "teamName": "Milwauke Brewers", "cityZoom": "13", "long": "-87.97115", "team": "MIL", "lat": "43.027978", "cityCenterLong": "-87.9584379", "desc": "<p></p>"},{"name": "Coors Field", "cityCenterLat": "39.7485088", "null": [""], "teamName": "Colorado Rockies", "cityZoom": "13", "long": "-104.994178", "team": "COL", "lat": "39.755882", "cityCenterLong": "-104.9913664", "desc": "<p></p>"},{"name": "Citizens Bank Park", "cityCenterLat": "39.9317775", "null": [""], "teamName": "Philadelphia Phillies", "cityZoom": "13", "long": "-75.166495", "team": "PHI", "lat": "39.906057", "cityCenterLong": "-75.1672523", "desc": "<p></p>"},{"name": "U.S. Cellular Field", "cityCenterLat": "41.9016557", "null": [""], "teamName": "Chicago White Sox", "cityZoom": "11", "long": "-87.633485", "team": "CHW", "lat": "41.82989", "cityCenterLong": "-87.7455511", "desc": "<p></p>"},]
+
 var places = {
     PIT: [{
         name: 'Burgatory',
@@ -180,202 +231,245 @@ var places = {
     }]
 }
     
-//click PLACE
 
+//loads stadiums dataset
+d3.csv('stadium.csv', function(stadiums) {
+
+    //loads food dataset
+    d3.csv('food.csv', function(food) {
+        
+        console.log(food)
+        
+        var inStadium = food.filter(function(d) {
+            return d.dist == 'PARK'
+        })
+        var outStadium = food.filter(function(d) {
+            return d.dist != 'PARK'
+        })
+        
+        
+        console.log(inStadium)
+        
+        
+        function initialize() {
     
-    
-    
-    
-function initialize() {
-    
-    
-    
-  var mapProp = {
-    center: new google.maps.LatLng(39.833333, -98.583333),
-    zoom:4,
-    mapTypeId:google.maps.MapTypeId.ROADMAP,
-    zoomControl: true,
-    mapTypeControl: false,
-    scaleControl: true,
-    streetViewControl: false,
-    rotateControl: false,
-    fullscreenControl: false
-  };
-  var map = new google.maps.Map(document.getElementById("map-container"),mapProp);
-  var markers = [];
-  var stadiumMarkers = [];
-  var stadiumHalo = [];
-  var focusMarker;
-  var zoomLevel = 'nation';
-  
-  var infowindow = new google.maps.InfoWindow({maxWidth:400});
-  
-  function clickPlace(d, e, mark) {
-    
-        //$('#description').html(d.desc)        
-        infowindow.setContent('<div style="font-size: 18px;" >' + e.name + ' (' + e.dist + ' from ' + d.name + ')</div>' +
-             '<a href="'+ e.url + '">' + e.url + '</a><br>' + e.address + '<br>' + e.desc);
-        infowindow.open(map, mark);
-  }
-  
-  function createMarkers() {
+            var windowWidth = document.getElementById('viz-container').clientWidth
+            var defaultZoom = windowWidth < 500 ? windowWidth < 350 ? 2 : 3 : 4    
+                
+            var mapProp = {
+                center: new google.maps.LatLng(39.833333, -98.583333),
+                zoom:defaultZoom,
+                mapTypeId:google.maps.MapTypeId.ROADMAP,
+                zoomControl: true,
+                mapTypeControl: false,
+                scaleControl: true,
+                streetViewControl: false,
+                rotateControl: false,
+                fullscreenControl: false
+            };
+            var map = new google.maps.Map(document.getElementById("map-container"),mapProp);
+            var markers = [];
+            var stadiumMarkers = [];
+            var stadiumHalo = [];
+            var focusMarker;
+            var zoomLevel = 'nation';
             
-             ['PIT', 'CHC', 'LAD'].forEach(function(e) {
-                places[e].forEach(function(d) {
+            var infowindow = new google.maps.InfoWindow({maxWidth:400});
+            
+            function clickPlace(e, mark) {
+                
+                    infowindow.setContent('<div style="font-size: 18px;"><span class="place-name">' + e.placeName + '</span> (' + e.dist + ' from ' + e.team + ')</div>' + //might need to change e.team
+                        '<a href="'+ e.url + '">' + e.url + '</a><br>' + e.address + '<br>' + e.desc);
+                    infowindow.open(map, mark);
+            }
+            
+            function createMarkers() {
+                        
+                outStadium.forEach(function(d) {
 
-                var markerPlace = new google.maps.Marker({
-                    position:new google.maps.LatLng(d.lat, d.long),
-                    icon:  {
-                        url: '1f535.png',
-                        origin: new google.maps.Point(0, 0),
-                        anchor: new google.maps.Point(10, 10)
+                    var markerPlace = new google.maps.Marker({
+                        position:new google.maps.LatLng(d.lat, d.long),
+                        icon:  {
+                            url: '1f535.png',
+                            origin: new google.maps.Point(0, 0),
+                            anchor: new google.maps.Point(12, 12)
+                        }
+                    })
+                    markerPlace.setMap(map);
+
+                    
+                    function clickPlaceBack() {
+                        clickPlace(d, this)
+                    }                     
+                    markerPlace.addListener('click', clickPlaceBack)        
+                    markers.push(markerPlace);
+                })
+
+            }
+            
+            stadiums.forEach(function(c) {
+                var marker = new google.maps.Marker({
+                        position:new google.maps.LatLng(c.lat, c.long),
+                        icon:  {
+                            url: '26bea.png',
+                            origin: new google.maps.Point(0, 0),
+                            anchor: new google.maps.Point(12, 12)
+                        }
+                    })
+                    marker.setMap(map);
+
+
+                    marker.addListener('mouseover', function() { 
+                            infowindow.setContent(c.name)
+                            infowindow.open(map, this);
+                    })
+                    marker.addListener('mouseout', function() {
+                            infowindow.close();
+                    })
+                    
+                    stadiumMarkers.push(marker);
+                    
+                    //click STADIUM
+                    function clickStadiumClose() {
+                            map.setZoom(15);
+                            map.setCenter(marker.getPosition());
+                            $('.map-title').text('Nearby ' + c.name) //do I still use this?
+                            zoomLevel = 'close'             
                     }
-                })
-                markerPlace.setMap(map);
+                        
+                    function clickStadiumCity() {
 
+                            var center = new google.maps.LatLng(parseFloat(c.cityCenterLat), parseFloat(c.cityCenterLong))
+                            
+                            map.setCenter(center);
+                            map.setZoom(c.cityZoom);
+                            map.setZoom(12)
+                            
+                            $('.map-title').text(c.team)
+                            zoomLevel = 'city'                           
+                    }
+                    
+                    function stadiumClick() {
+                        if (map.getZoom() < 11 || zoomLevel == 'nation' ) {
+                            clickStadiumCity()
+
+                        }
+                        else {
+                            clickStadiumClose()
+                        }
+                        $('#desc-title').html(c.name + ' (' + c.teamName + ')') 
+                        $('#desc-body').html(c.desc)
+                        focusMarker = this
+                    }
+                    
+                    
+                    marker.addListener('click', stadiumClick);
                 
-                function clickPlaceBack() {
-                    clickPlace(e,d, this)
-                }                     
-                markerPlace.addListener('click', clickPlaceBack)        
-                markers.push(markerPlace);
-            })
-             })
+                    var closeCircle = new google.maps.Circle({
+                            strokeColor: '#FF0000',
+                            strokeOpacity: 0.8,
+                            strokeWeight: 2,
+                            fillColor: '#FF5920',
+                            fillOpacity: 0.25,
+                            map: map,
+                            center: marker.getPosition(),
+                            radius: 1609.34/2
+                        });
+                                                        
+                    });
+                    
 
-        }
-  
-  stadiums.forEach(function(c) {
-      var marker = new google.maps.Marker({
-            position:new google.maps.LatLng(c.lat, c.long),
-            icon:  {
-                url: '26bea.png',
-                origin: new google.maps.Point(0, 0),
-                anchor: new google.maps.Point(10, 10)
-            }
-        })
-        marker.setMap(map);
+                    
+                    //ZOOM listener
+                    map.addListener('zoom_changed', function() { 
+                        
+                        if (map.getZoom() < 6) {
+                            $('#desc-title').html('United States/Canada')
+                            $('#desc-body').html('Please select a stadium')
+                        }              
+                        else {
+                            
+                            if ($('#desc-title').text() == 'United States/Canada') {
+                                    $('#desc-title').text('')
+                                    $('#desc-body').html('Please select a stadium')
 
+                            }
+                            
+                            
+                            if (map.getZoom() < 11) {
+                                if ($('#desc-title').text() != 'United States/Canada') {
+                                    $('#desc-title').text('')
+                                    $('#desc-body').html('Please select a stadium')
 
-        marker.addListener('mouseover', function() { 
-                infowindow.setContent(c.name)
-                infowindow.open(map, this);
-        })
-        marker.addListener('mouseout', function() {
-                infowindow.close();
-        })
-        
-        stadiumMarkers.push(marker);
-        
-        //click STADIUM
-        function clickStadiumClose() {
-                map.setZoom(15);
-                map.setCenter(marker.getPosition());
-                $('.map-title').text('Nearby ' + c.name)
-                zoomLevel = 'close'             
-        }
-               
-        function clickStadiumCity() {
-
-                var a = new google.maps.LatLng(parseFloat(c.cityCenterLat), parseFloat(c.cityCenterLong))
-                console.log(a)
+                                }
+                                else {
+                                    
+                                }
+                            }
+                        }
+                        
+                        
                 
-                map.setCenter(a);
-                //map.setZoom(c.cityZoom);
-                map.setZoom(12)
+                        if (map.getZoom() < 11) {
+
+                            markers.forEach(function(d) {
+                                d.setMap(null);
+                            })
+                            zoomLevel = 'nation'
+                            
+                        }
+                        else {
+                            createMarkers()
+                            stadiumHalo.forEach(function(d) {
+                                d.setOptions({fillOpacity: 0})
+                            })
+                        }
+                        
+                        if (map.getZoom() < 5) {
+                            stadiumHalo.forEach(function(d) {
+                                d.setOptions({fillOpacity: .25})
+                            })
+                        }
+                    })
+                    
+
+                    
+                    //Stadium goes out of bounds
+                    map.addListener('bounds_changed', function() { 
+                        if (focusMarker) {
+                            var viewport = map.getBounds();
+                            if (!viewport.contains(focusMarker.getPosition())) {
+                                $('#desc-title').html('')
+                                $('#desc-body').html('Please select a stadium')
+                            }
+                        }
+                    })
+                    
+                    //reset
+                    $('.reset.button').click(function() {
+                        map.setZoom(defaultZoom)
+                        map.setCenter(new google.maps.LatLng(39.833333, -98.583333))
+                    })
+                    
+                    
+                // $('#viz-load').remove();
+
+            }
                 
-                $('.map-title').text(c.team)
-                zoomLevel = 'city'                           
-        }
+                
+                
+                
+            google.maps.event.addDomListener(window, 'load', initialize);
         
-        function stadiumClick() {
-            if (map.getZoom() < 11 || zoomLevel == 'nation' ) {
-                clickStadiumCity()
-
-            }
-            else {
-                clickStadiumClose()
-            }
-            $('#desc-title').html(c.name + ' (' + c.teamName + ')')
-            $('#desc-body').html(c.desc)
-            focusMarker = this
-        }
-        
-        
-        marker.addListener('click', stadiumClick);
-
-        
-        var closeCircle = new google.maps.Circle({
-                strokeColor: '#FF0000',
-                strokeOpacity: 0.8,
-                strokeWeight: 2,
-                fillColor: '#FF5920',
-                fillOpacity: 0.25,
-                map: map,
-                center: marker.getPosition(),
-                radius: 1609.34/2
-            });
-                                  
-
-        
-        // var haloCircle = new google.maps.Circle({
-
-        //         strokeOpacity: 0.8,
-        //         strokeWeight: 0,
-        //         fillColor: 'blue',
-        //         fillOpacity: 0.25,
-        //         map: map,
-        //         center: marker.getPosition(),
-        //         radius: 1609.34*60
-        //     });
-        // stadiumHalo.push(haloCircle)               
-        });
-        
-
-        
-        
-          map.addListener('zoom_changed', function() { 
-              if (map.getZoom() < 11) {
-
-                markers.forEach(function(d) {
-                    console.log(d)
-                    d.setMap(null);
-                })
-                zoomLevel = 'nation'
-
-              }
-              else {
-                  createMarkers()
-                  stadiumHalo.forEach(function(d) {
-                      d.setOptions({fillOpacity: 0})
-                  })
-              }
-              
-              if (map.getZoom() < 5) {
-                stadiumHalo.forEach(function(d) {
-                    d.setOptions({fillOpacity: .25})
-                })
-              }
-          })
-          map.addListener('bounds_changed', function() { 
-              if (focusMarker) {
-                var viewport = map.getBounds();
-                if (!viewport.contains(focusMarker.getPosition())) {
-                    $('#desc-title').html('')
-                    $('#desc-body').html('Please select a stadium')
-                }
-              }
-
-          })
-          $('.reset.button').click(function() {
-              map.setZoom(4)
-              map.setCenter(new google.maps.LatLng(39.833333, -98.583333))
-          })
-          
-}
-
-google.maps.event.addDomListener(window, 'load', initialize);
-
-
+    })    
+    
+    
+    
+})
+    
+    
+    
+    
 
 </script>
 </head>
@@ -383,12 +477,15 @@ google.maps.event.addDomListener(window, 'load', initialize);
 <body>
 <!--<div class="map-title">US/Canada</div>-->
 <div id="viz-container">
-    <div id="map-container" style="width: 740px; height: 500px;"></div>
+    <div id="viz-title">Major League Food</div>
+    <div id="map-container" style="height: 500px;"></div>
+
     <div id="desc-container">
-        <div class='button reset'>Reset</div>
-        <div id="desc-title"></div>
-        <div id="desc-body"></div>
+        <div><div class='button reset'>Reset</div><div id="desc-title">United States/Canada</div></div>
+        <div id="desc-body">Please select a stadium</div>
     </div>
+        <!--<div id="viz-load">LOADING...</div>-->
+
 </div>
 </body>
 

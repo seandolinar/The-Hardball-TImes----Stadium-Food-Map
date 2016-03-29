@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
+<base target="_top"/>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="http://code.jquery.com/jquery-1.12.0.min.js"></script>
 <script src="http://maps.googleapis.com/maps/api/js"></script>
 
@@ -9,28 +11,20 @@
 <style>
     body {
         margin: 0px;
+        font-size: 18px;
     }
     
     #viz-container {
         width:100%;
+        height: 955px;
         max-width: 740px;
         position: relative;
     }
-    
-    #viz-load {
-        position: absolute;
-        top: 0px;
-        left: 0px;
-        width: 100%;
-        height: 100%;
-        background-color: green;
-        z-index: 999;
-    }
-      
+          
     #viz-title {
-        font-size: 30px;
+        font-size: 1.5rem;
         font-family: Lato, Arial;
-        padding-bottom: 10px;
+        line-height: 1.5;
         padding-left: 5px;
         background-color: #8e001c;
         color: #FFFFFF;
@@ -53,42 +47,131 @@
         line-height: 30px;
         padding-left: 10px;
         font-family: Lato, Arial;
-        font-size: 24px;
+        font-size: 1.3rem;
     }
     
+    .map-key {
+        position: absolute;
+        z-index: 5;
+        background-color: rgba(255, 255, 255, .9);
+        padding: 5px;
+        border: 1px solid #999;
+        text-align: center;
+        padding-left: 10px;
+        font-family: Lato, Arial;
+        font-size: 1rem;
+        bottom: 14px;
+        right: 0px;
+    }
+    
+    .key-circle {
+        border-radius: 50%;
+        height: 1rem;
+        width: 1rem;
+        border: 2px solid red;
+        background-color: rgba(255, 0, 0, .3);
+        display: inline-block;
+        margin-right: 10px;
+        margin-bottom: -3px;
+    }
+        
+    .gm-style-iw {
+        font-family: Lato, Arial;
+    }
     
     .place-name {
         font-weight: 400;
     }
+    .place-desc {
+        margin-top: 5px;
+    }
+    .place-item {
+        margin-top: 5px;
+        margin-bottom: 5px;
+    }
     
-    
-    
-    
+    .park-place-name {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+    .place-dist {
+        font-size: .83rem;
+        margin-left: 5px;
+        position:relative;
+        top:-1px;
+        display: inline-block;
+    }
     
     #desc-container {
         font-family: Lato, Arial;
         margin-top: 20px;
-        margin-left: 5px;
-        
+        margin-left: 5px;      
     }
     #desc-title {
-        font-size: 28px;
+        font-size: 1.6rem;
     }
     #desc-body {
         height: 300px;
+        padding-bottom: 20px;
+        font-size: .8rem;
         overflow-y: auto;
         clear: both;
     }
     
+    .table-team {
+        display: table;
+        border-collapse: collapse;
+        margin: 30px auto;
+    }
+    .table-row {
+        display: table-row;
+    }
+    .table-cell {
+        display: table-cell;
+        padding: 10px;
+        border: 2px solid black;
+        vertical-align: middle;
+        text-align: center;
+        cursor: pointer;
+    }
+    .table-cell:hover {
+        background-color: #8e001c;
+        color: white;
+    }
+    
+    
+    #credits {
+        background-color: #d3ceaa;
+        color: black;
+        border-top: 1px solid #8e001c;
+        margin-top: 5px;
+        padding-top: 5px;
+        padding-bottom: 5px;
+        padding-left: 5px;
+        font-family: Lato, Arial;
+        font-size: .6rem;
+        min-height: 19px;
+        width: 100%;
+        position: absolute;
+        left: 0px;
+        bottom: 0px;
+    }
+    #credits a {
+        color: black;
+        text-decoration: none;
+    }
+    #credits a:hover {
+        color: #8e001c;
+    }
+    
     
     .button {
-
         background-color: #C5C5C5;
         line-height: 2.2;
         cursor: pointer;
         text-align: center;
         display: inline-block;
-
     }
     
     .button:hover {
@@ -99,6 +182,45 @@
         margin-right: 20px;
         margin-bottom: 10px;
         padding: 0 10px;
+        font-size: 12px;
+    }
+    
+    @media all and (max-width: 500px) {
+        body {
+            font-size: 14px;
+        }
+        #desc-title {
+            font-size: 1.4rem;
+        }
+        .table-team {
+            margin: 30px auto;
+        }
+        .table-cell {
+            padding: 5px;
+            border: 1px solid black;
+        }
+         #map-container {
+            height:400px;
+        }
+        
+    }
+    @media all and (max-width: 400px) {
+        body {
+            font-size: 10px;
+        }
+        #map-container {
+            height:300px;
+        }
+        #desc-title {
+            font-size: 1.2rem;
+        }
+        .table-team {
+            margin: 30px auto;
+        }
+        .table-cell {
+            padding: 3px;
+            border: 1px solid black;
+        }
     }
 </style>
 
@@ -106,139 +228,14 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
 <script>
 
-    
-var stadiums = [{
-    name: 'PNC Park',
-    lat: 40.446944,
-    long: -80.005833,
-    team: 'PIT',
-    teamName:'Pittsburgh Pirates',
-    cityBounds: new google.maps.LatLngBounds(new google.maps.LatLng(40.361369, -80.095278), new google.maps.LatLng(40.501368, -79.865723)),
-    cityCenter: new google.maps.LatLng(40.440625, -79.995886),
-    cityZoom: 13,
-    desc: '<p>Pittsburgh is a city made up of many nationalities, the majority of the residents being descendents of countries in Europe. Because of that, the chefs at PNC Park have started to incorporate these flavors into some of the menu items. Sure, you can get nachos or a pretzel, but don\'t you want to try something like the pulled pork pierogi stacker, found at Manny\'s BBQ behind centerfield? As a bonus, during most games Manny Sanguillen is there signing autographs too. </p><p> Pittsburghers love french fries; on their own, on a salad or on a sandwich. If you are in the mood for a Pittsburgh staple, head over to Primanti Brothers behind section 110 to get a sandwich that will have the french fries and coleslaw jammed right into the middle of it.  - Ethan Obstarcyzk <br> For my money, the best buy at PNC Park is the house-smoked Pulled Pork Pierogi Stacker. Though Pittsburgh is far too well-known for its Primanti Bros. sandwiches - french fries and thinly sliced deli meat piled high on huge slabs of white bread - what could be more Pittsburgh than house-smoked pulled pork, caramelized onions, and a couple pierogis stacked inside a salty pretzel bun slathered with onion glaze? It\'s been a fan favorite for years now. Stop by Manny\'s BBQ in center field to give the pulled pork and pierogi stacker a try. The BBQ stand is named after Manny Sanguillen, a former Pirates catcher and three-time All-Star who is a familiar, smiling, everyday staple at Pirates home games. - Stephen Nesbitt <br> As you get down the 1B/RF concourse at PNC Park (as in, moving from home plate to the right field corner), there\'s a stretch of local food places that\'s usually where I find myself eating: Primanti Brothers, Quaker Steak and Lube, and I believe BRGR are all there. It\'s hard to beat Manny Sanguillen\'s BBQ out in centerfield behind the bullpens, though, because the pulled pork sandwiches are excellent and Manny himself occasionally hangs out there to sign tickets, bobbleheads, programs, whatever else you might have.  - Pat Lackey <p>The Federal Street Grille (first level, section 116, behind home plate. There are other locations, but this one I know best) does a killer gigantic footlong hot dog smothered in onions and peppers. Its a really, really legitimate ballpark dog, one of the best I\'ve ever had. That would be my top recommendation. There are some other worthy contenders, including the Pittsburgh Pulled Pork Pierogi Stacker (Pierogis are a Pittsburgh favorite) and the BRGR hamburger and shake (located in the same area as the Federal Street Grill). The former is a very unique, one-of-a-kind food, highly AMERICAN because it involves stacking unhealthy, doughy, buttery, pierogies on top of pork. The latter is just a damn solid hamburger, well above your average ballpark fair. All told, though, for my money the giant hot dog is king. - Paul Johnson'
-},
-{
-    name: 'Wrigley Field',
-    lat: 41.948333, 
-    long: -87.655556,
-    team: 'CHC',
-    cityBounds: new google.maps.LatLngBounds(new google.maps.LatLng(41.644335, -87.940267), new google.maps.LatLng(42.023131, -87.524044)),
-    cityCenter: new google.maps.LatLng(41.909442,-87.634983),
-    cityZoom: 11
+var testObj = {}
 
-},
-{
-    name: 'U.S. Cellular Field',
-    lat: 41.82989,
-    long: -87.633485,
-    team: 'CHC',
-    cityBounds: new google.maps.LatLngBounds(new google.maps.LatLng(41.644335, -87.940267), new google.maps.LatLng(42.023131, -87.524044)),
-    cityCenter: new google.maps.LatLng(41.909442,-87.634983),
-    cityZoom: 11
-},
-// {
-//     name: 'Dodger Stadium',
-//     lat: 34.073611,
-//     long: -118.24,
-//     team: 'LAD'
-// }
-]
-    
-var stadiums = [{"name": "Rogers Centre", "cityCenterLat": "43.6532372", "null": [""], "teamName": "Toronto Blue Jays", "cityZoom": "12", "long": "-79.389353", "team": "TOR", "lat": "43.641438", "cityCenterLong": "-79.4072797", "desc": "<p>Pittsburgh is a city made up of many nationalities, the majority of the residents being descendents of countries in Europe. Because of that, the chefs at PNC Park have started to incorporate these flavors into some of the menu items. Sure, you can get nachos or a pretzel, but don\\u2019t you want to try something like the pulled pork pierogi stacker, found at Manny\\u2019s BBQ behind centerfield? As a bonus, during most games Manny Sanguillen is there signing autographs too.</p><p>Pittsburghers love french fries; on their own, on a salad or on a sandwich. If you are in the mood for a Pittsburgh staple, head over to Primanti Brothers behind section 110 to get a sandwich that will have the french fries and coleslaw jammed right into the middle of it.  \\u2014 Ethan Obstarcyzk</p><p> For my money, the best buy at PNC Park is the house-smoked Pulled Pork Pierogi Stacker. Though Pittsburgh is far too well-known for its Primanti Bros. sandwiches \\u2014 french fries and thinly sliced deli meat piled high on huge slabs of white bread \\u2014 what could be more Pittsburgh than house-smoked pulled pork, caramelized onions, and a couple pierogis stacked inside a salty pretzel bun slathered with onion glaze? It\\u2019s been a fan favorite for years now. Stop by Manny\\u2019s BBQ in center field to give the pulled pork and pierogi stacker a try. The BBQ stand is named after Manny Sanguillen, a former Pirates catcher and three-time All-Star who is a familiar, smiling, everyday staple at Pirates home games. \\u2014 Stephen Nesbitt</p><p>As you get down the 1B/RF concourse at PNC Park (as in, moving from home plate to the right field corner), there's a stretch of local food places that's usually where I find myself eating: Primanti Brothers, Quaker Steak and Lube, and I believe BRGR are all there. It's hard to beat Manny Sanguillen's BBQ out in centerfield behind the bullpens, though, because the pulled pork sandwiches are excellent and Manny himself occasionally hangs out there to sign tickets, bobbleheads, programs, whatever else you might have.\\240 \\u2014 Pat Lackey</p><p>The Federal Street Grille (first level, section 116, behind home plate. There are other locations, but this one I know best) does a killer gigantic footlong hot dog smothered in onions and peppers. Its a really, really legitimate ballpark dog, one of the best I've ever had. That would be my top recommendation. There are some other worthy contenders, including the Pittsburgh Pulled Pork Pierogi Stacker (Pierogis are a Pittsburgh favorite) and the BRGR hamburger and shake (located in the same area as the Federal Street Grill). The former is a very unique, one-of-a-kind food, highly AMERICANtm because it involves stacking unhealthy, doughy, buttery, pierogies on top of pork. The latter is just a damn solid hamburger, well above your average ballpark fair. All told, though, for my money the giant hot dog is king. \\u2014 Paul Johnson</p>"},{"name": "AT&T Park", "cityCenterLat": "37.7576948", "null": [""], "teamName": "San Francisco Giants", "cityZoom": "13", "long": "-122.38927", "team": "SF", "lat": "37.778595", "cityCenterLong": "-122.4726193", "desc": "<p></p>"},{"name": "Dodger Stadium", "cityCenterLat": "34.0318474", "null": [""], "teamName": "Los Angeles Dodgers", "cityZoom": "12", "long": "-118.240616", "team": "LAD", "lat": "34.072736", "cityCenterLong": "-118.4083263", "desc": "<p></p>"},{"name": "Wrigley Field", "cityCenterLat": "41.9016557", "null": [""], "teamName": "Chicago Cubs", "cityZoom": "11", "long": "-87.655333", "team": "CHC", "lat": "41.948438", "cityCenterLong": "-87.7455511", "desc": "<p></p>"},{"name": "Kauffman Stadium", "cityCenterLat": "39.0846553", "null": [""], "teamName": "Kansas City Royals", "cityZoom": "12", "long": "-94.480314", "team": "KC", "lat": "39.051672", "cityCenterLong": "-94.6258697", "desc": "<p></p>"},{"name": "Chase Field", "cityCenterLat": "33.4528429", "null": [""], "teamName": "Arizona Diamondbacks", "cityZoom": "12", "long": "-112.068715", "team": "ARZ", "lat": "33.446191", "cityCenterLong": "-112.1480808", "desc": "<p></p>"},{"name": "Citi Field", "cityCenterLat": "40.7634318", "null": [""], "teamName": "New York Mets", "cityZoom": "14", "long": "-73.845821", "team": "NYM", "lat": "40.757088", "cityCenterLong": "-73.9178952", "desc": "<p></p>"},{"name": "Minute Maid Park", "cityCenterLat": "29.7489884", "null": [""], "teamName": "Houston Astros", "cityZoom": "13", "long": "-95.355519", "team": "HOU", "lat": "29.757268", "cityCenterLong": "-95.3801128", "desc": "<p></p>"},{"name": "Busch Stadium", "cityCenterLat": "38.6282746", "null": [""], "teamName": "St. Louis Cardinals", "cityZoom": "13", "long": "-90.192821", "team": "STL", "lat": "38.622619", "cityCenterLong": "-90.2659512", "desc": "<p></p>"},{"name": "Progressive Field", "cityCenterLat": "41.4920926", "null": [""], "teamName": "Cleveland Indians", "cityZoom": "14", "long": "-81.685229", "team": "CLE", "lat": "41.496211", "cityCenterLong": "-81.7123846", "desc": "<p></p>"},{"name": "PNC Park", "cityCenterLat": "40.4425426", "null": [""], "teamName": "Pittsburgh Pirates", "cityZoom": "15", "long": "-80.005666", "team": "PIT", "lat": "40.446855", "cityCenterLong": "-80.0073648", "desc": "<p></p>"},{"name": "Ballpark In Arlington", "cityCenterLat": "32.7576717", "null": [""], "teamName": "Texas Rangers", "cityZoom": "12", "long": "-97.082509", "team": "TEX", "lat": "32.751244", "cityCenterLong": "-97.0940064", "desc": "<p></p>"},{"name": "Comerica Park", "cityCenterLat": "42.3476747", "null": [""], "teamName": "Detriot Tigers", "cityZoom": "13", "long": "-83.04852", "team": "DET", "lat": "42.338998", "cityCenterLong": "-83.1499049", "desc": "<p></p>"},{"name": "Tropicana Field", "cityCenterLat": "27.8731834", "null": [""], "teamName": "Tampa Bay Rays", "cityZoom": "12", "long": "-82.653392", "team": "TB", "lat": "27.768225", "cityCenterLong": "-82.6439947", "desc": "<p></p>"},{"name": "Yankee Stadium", "cityCenterLat": "40.8053498", "null": [""], "teamName": "New York Yankees", "cityZoom": "14", "long": "-73.926174", "team": "NYY", "lat": "40.829643", "cityCenterLong": "-73.9510298", "desc": "<p></p>"},{"name": "Nationals Park", "cityCenterLat": "38.8860364", "null": [""], "teamName": "Washington Nationals", "cityZoom": "14", "long": "-77.007433", "team": "WAS", "lat": "38.87301", "cityCenterLong": "-77.0155123", "desc": "<p></p>"},{"name": "Fenway Park", "cityCenterLat": "42.3532618", "null": [""], "teamName": "Boston Red Sox", "cityZoom": "15", "long": "-71.097218", "team": "BOS", "lat": "42.346676", "cityCenterLong": "-71.0650979", "desc": "<p></p>"},{"name": "Angel Stadium of Anaheim", "cityCenterLat": "33.8272761", "null": [""], "teamName": "Los Angeles Angels", "cityZoom": "13", "long": "-117.882732", "team": "LAA", "lat": "33.800308", "cityCenterLong": "-117.9945652", "desc": "<p></p>"},{"name": "Oriole Park at Camden Yards", "cityCenterLat": "39.2858246", "null": [""], "teamName": "Baltimore Orioles", "cityZoom": "14", "long": "-76.620614", "team": "BAL", "lat": "39.282888", "cityCenterLong": "-76.6158193", "desc": "<p></p>"},{"name": "Great American Ball Park", "cityCenterLat": "39.1045172", "null": [""], "teamName": "Cincinnati Reds", "cityZoom": "14", "long": "-84.508151", "team": "CIN", "lat": "39.097931", "cityCenterLong": "-84.5229417", "desc": "<p></p>"},{"name": "Marlins Park", "cityCenterLat": "25.7533208", "null": [""], "teamName": "Miami Marlins", "cityZoom": "13", "long": "-80.219732", "team": "MIA", "lat": "25.778054", "cityCenterLong": "-80.2532861", "desc": "<p></p>"},{"name": "Safeco Field", "cityCenterLat": "47.6039759", "null": [""], "teamName": "Seattle Mariners", "cityZoom": "14", "long": "-122.332345", "team": "SEA", "lat": "47.591429", "cityCenterLong": "-122.3432119", "desc": "<p></p>"},{"name": "O.co Coliseum", "cityCenterLat": "37.7759263", "null": [""], "teamName": "Oakland Athletics", "cityZoom": "13", "long": "-122.200546", "team": "OAK", "lat": "37.751595", "cityCenterLong": "-122.2402212", "desc": "<p></p>"},{"name": "Petco Park", "cityCenterLat": "32.7448287", "null": [""], "teamName": "San Diego Padres", "cityZoom": "13", "long": "-117.157012", "team": "SD", "lat": "32.707339", "cityCenterLong": "-117.1921092", "desc": "<p></p>"},{"name": "Turner Field", "cityCenterLat": "33.7591656", "null": [""], "teamName": "Atlanta Braves", "cityZoom": "15", "long": "-84.389973", "team": "ATL", "lat": "33.734808", "cityCenterLong": "-84.3979336", "desc": "<p></p>"},{"name": "Target Field", "cityCenterLat": "44.9769023", "null": [""], "teamName": "Minnesota Twins", "cityZoom": "14", "long": "-93.277776", "team": "MIN", "lat": "44.981653", "cityCenterLong": "-93.2787745", "desc": "<p></p>"},{"name": "Miller Park", "cityCenterLat": "43.0385762", "null": [""], "teamName": "Milwauke Brewers", "cityZoom": "13", "long": "-87.97115", "team": "MIL", "lat": "43.027978", "cityCenterLong": "-87.9584379", "desc": "<p></p>"},{"name": "Coors Field", "cityCenterLat": "39.7485088", "null": [""], "teamName": "Colorado Rockies", "cityZoom": "13", "long": "-104.994178", "team": "COL", "lat": "39.755882", "cityCenterLong": "-104.9913664", "desc": "<p></p>"},{"name": "Citizens Bank Park", "cityCenterLat": "39.9317775", "null": [""], "teamName": "Philadelphia Phillies", "cityZoom": "13", "long": "-75.166495", "team": "PHI", "lat": "39.906057", "cityCenterLong": "-75.1672523", "desc": "<p></p>"},{"name": "U.S. Cellular Field", "cityCenterLat": "41.9016557", "null": [""], "teamName": "Chicago White Sox", "cityZoom": "11", "long": "-87.633485", "team": "CHW", "lat": "41.82989", "cityCenterLong": "-87.7455511", "desc": "<p></p>"},]
-
-var places = {
-    PIT: [{
-        name: 'Burgatory',
-        dist: '.2 mi',
-        lat: 40.446944,
-        long: -80.009833,
-        address: '342 N Shore Dr, Pittsburgh, PA 15212',
-        url: 'http://www.burgatorybar.com/',
-        desc: 'Burgatory is about a 10 minute walk from PNC Park and is located near Stage AE. Not only do they have some pretty wild combinations as far as hamburgers go, they have boozy milkshakes that are terrific.'
-    },
-    {
-        name: 'Rivertowne North Shore',
-        dist: '.2 mi',
-        lat: 40.4458793,
-        long: -80.0126523,
-        url: 'http://www.myrivertowne.com/restaurant/index.asp',
-        address: '337 North Shore Drive, Pittsburgh, PA 15212',
-        desc: 'Rivertowne North Shore is located just about across the street from Burgatory and is in the same building as the Root Sports Pittsburgh office. They have the standard offerings of sandwiches, hamburgers and other snacks. They also brew their own beer and since their beers are not distributed too far outside of the city, it may be worth it to check it out and try something unique to the area. Rivertowne also has a location in PNC Park, near the scoreboard in case you want to check it out while inside the ballpark. - Ethan Obstarcyzk'
-    },
-    {
-        name: 'Primanti Bros.',
-        dist: '1.5 mi',
-        lat: 40.4507166,
-        long: -79.9877019,
-        address: '342 N Shore Dr, Pittsburgh, PA 15212',
-        url: 'http://www.burgatorybar.com/',
-        desc: 'Burgatory is about a 10 minute walk from PNC Park and is located near Stage AE. Not only do they have some pretty wild combinations as far as hamburgers go, they have boozy milkshakes that are terrific.'
-
-    },
-    {
-        name: 'Jerome Bettis Grille 36',
-        dist: '.3 mi',
-        address: 'North Shore Riverfront Park, 393 N Shore Dr, Pittsburgh, PA 15212',
-        url: 'https://jeromebettisgrille36.g3restaurants.com/',
-        lat: 40.445617,
-        long: -80.011371,
-        desc: "For being a big, generic sports bar named after a former player, Bettis' bar on the north shore outside PNC Park has a surprising beer selection and good bar food. I can't recommend the deep fried pretzels strongly enough. - Jeff Moore"
-    },
-    {
-        name: "Peppi's",
-        dist: '1.4 mi',
-        address: '1721 Penn Ave, Pittsburgh, PA 15222',
-        url: 'http://peppisubs.com/',
-        address: '1721 Penn Ave, Pittsburgh, PA 15222',
-        lat: 40.450205,
-        long: -79.985649,
-        desc: "From the department of cheap and local, Peppi's has a location on Smithfield Street downtown, and they do classic East Coast hoagies in a very impressive manner. I personally go for either the cheesesteak or the hot sausage sub, but there are a lot of good options."
-    },
-    {
-        name: "Peppi's",
-        address: '927 Western Ave, Pittsburgh, PA 15233',
-        dist: '.9 mi',
-        url: 'http://peppisubs.com/',
-        lat: 40.451622,
-        long: -80.017499,
-        desc: "From the department of cheap and local, Peppi's has a location on Smithfield Street downtown, and they do classic East Coast hoagies in a very impressive manner. I personally go for either the cheesesteak or the hot sausage sub, but there are a lot of good options."
-    },
-    {
-        name: "Sal's Deli",
-        dist: '.6 mi',
-        address: '245 7th St, Pittsburgh, PA 15222',
-        url: '',
-        lat: 40.4426535,
-        long: -80.0020152,
-        desc: "From the department of cheap and local, Peppi's has a location on Smithfield Street downtown, and they do classic East Coast hoagies in a very impressive manner. I personally go for either the cheesesteak or the hot sausage sub, but there are a lot of good options."
-    }],
-    CHC: [{
-        name: 'Crisp',
-        lat: 41.9360871,
-        long: -87.6467362,
-        address: '2940 N Broadway St, Chicago, IL 60657',
-        url: 'http://www.crisponline.com/crisp.aspx',
-        desc: "Crisp (Korean fried chicken) on North Broadway if you're willing to venture more than a couple blocks. It's about a 10 minute walk from the marquee at Wrigley. - Adam Brown"
-    }],
-    LAD: [{
-        name: 'Crisp',
-        lat: 41.9360871,
-        long: -87.6467362,
-        address: '2940 N Broadway St, Chicago, IL 60657',
-        url: 'http://www.crisponline.com/crisp.aspx',
-        desc: "Crisp (Korean fried chicken) on North Broadway if you're willing to venture more than a couple blocks. It's about a 10 minute walk from the marquee at Wrigley. - Adam Brown"
-    }]
-}
-    
-
-//loads stadiums dataset
+    //loads stadiums dataset
 d3.csv('stadium.csv', function(stadiums) {
 
     //loads food dataset
     d3.csv('food.csv', function(food) {
         
-        console.log(food)
         
         var inStadium = food.filter(function(d) {
             return d.dist == 'PARK'
@@ -246,10 +243,6 @@ d3.csv('stadium.csv', function(stadiums) {
         var outStadium = food.filter(function(d) {
             return d.dist != 'PARK'
         })
-        
-        
-        console.log(inStadium)
-        
         
         function initialize() {
     
@@ -261,6 +254,9 @@ d3.csv('stadium.csv', function(stadiums) {
                 zoom:defaultZoom,
                 mapTypeId:google.maps.MapTypeId.ROADMAP,
                 zoomControl: true,
+                zoomControlOptions: {
+                    position: google.maps.ControlPosition.TOP_RIGHT
+                },
                 mapTypeControl: false,
                 scaleControl: true,
                 streetViewControl: false,
@@ -277,9 +273,10 @@ d3.csv('stadium.csv', function(stadiums) {
             var infowindow = new google.maps.InfoWindow({maxWidth:400});
             
             function clickPlace(e, mark) {
-                
-                    infowindow.setContent('<div style="font-size: 18px;"><span class="place-name">' + e.placeName + '</span> (' + e.dist + ' from ' + e.team + ')</div>' + //might need to change e.team
-                        '<a href="'+ e.url + '">' + e.url + '</a><br>' + e.address + '<br>' + e.desc);
+                    var newDesc = deliminator(e.desc)
+                    var stadium = stadiums.find(function (d) { return d.team == e.team})
+                    infowindow.setContent('<div class="place-container"><div style="font-size: 18px;"><span class="place-name">' + e.placeName + '</span> <span class="place-dist">(' + (+e.dist).toFixed(1) + ' mi. from ' + stadium.name + ')</span></div>' + 
+                        '<a href="'+ e.url + '">' + e.url + '</a><br>' + e.address + '<br><p class="place-desc">' + newDesc + '</p></div>');
                     infowindow.open(map, mark);
             }
             
@@ -296,15 +293,19 @@ d3.csv('stadium.csv', function(stadiums) {
                         }
                     })
                     markerPlace.setMap(map);
-
-                    
+                                      
                     function clickPlaceBack() {
                         clickPlace(d, this)
                     }                     
                     markerPlace.addListener('click', clickPlaceBack)        
                     markers.push(markerPlace);
                 })
-
+            }
+            
+            function deliminator(strDesc) {
+                
+                return strDesc.replace(/\/\/\//g, '</p><p class="place-desc">')
+                
             }
             
             stadiums.forEach(function(c) {
@@ -314,7 +315,8 @@ d3.csv('stadium.csv', function(stadiums) {
                             url: '26bea.png',
                             origin: new google.maps.Point(0, 0),
                             anchor: new google.maps.Point(12, 12)
-                        }
+                        },
+                        zIndex: 100
                     })
                     marker.setMap(map);
 
@@ -339,10 +341,10 @@ d3.csv('stadium.csv', function(stadiums) {
                         
                     function clickStadiumCity() {
 
-                            var center = new google.maps.LatLng(parseFloat(c.cityCenterLat), parseFloat(c.cityCenterLong))
+                            var center = new google.maps.LatLng(parseFloat(c.lat), parseFloat(c.long))
                             
                             map.setCenter(center);
-                            map.setZoom(c.cityZoom);
+                            //map.setZoom(c.cityZoom);
                             map.setZoom(12)
                             
                             $('.map-title').text(c.team)
@@ -350,20 +352,41 @@ d3.csv('stadium.csv', function(stadiums) {
                     }
                     
                     function stadiumClick() {
+
+                        $('.gm-style').append('<div class="map-key"><div class="key-circle"></div>1/2 mile radius</div>')
+
                         if (map.getZoom() < 11 || zoomLevel == 'nation' ) {
                             clickStadiumCity()
-
                         }
                         else {
                             clickStadiumClose()
                         }
+                                                
                         $('#desc-title').html(c.name + ' (' + c.teamName + ')') 
-                        $('#desc-body').html(c.desc)
-                        focusMarker = this
+                        
+                        var localStadium = inStadium.filter(function(d) {
+                            return d.team == c.team
+                        }).map(function(d){
+                            return '<p class="park-place-name">' + d.placeName + '</p>' + deliminator(d.desc)
+                        })
+                        
+                        $('#desc-body').html('<p>' + localStadium.join('</p><p>') + '</p>')
+                        focusMarker = new google.maps.LatLng(c.lat,c.long) // I have to fix this I think
+                        
+                        d3.csv('twitter.csv', function(twitter) {
+                            var contributers = twitter.filter(function(d) {
+                                return d.team == c.team && d.handle.length > 0
+                            }).map(function(d) {
+                                return '<a href="http://twitter.com/'+ d.handle + '" target="_top">@' + d.handle + '</a>' 
+                            })
+                            
+                            $('#credits').html('Contributors: ' + contributers.join(' | '))
+                        })
                     }
                     
-                    
                     marker.addListener('click', stadiumClick);
+                    testObj[c.team] = stadiumClick
+                    
                 
                     var closeCircle = new google.maps.Circle({
                             strokeColor: '#FF0000',
@@ -377,22 +400,27 @@ d3.csv('stadium.csv', function(stadiums) {
                         });
                                                         
                     });
-                    
 
-                    
                     //ZOOM listener
                     map.addListener('zoom_changed', function() { 
                         
                         if (map.getZoom() < 6) {
                             $('#desc-title').html('United States/Canada')
                             $('#desc-body').html('Please select a stadium')
+                            $('#credits').html('')
+                            $('.map-key').remove();
+                            zoomLevel = 'nation'
+                            buildTableTeam() 
+
                         }              
                         else {
                             
                             if ($('#desc-title').text() == 'United States/Canada') {
                                     $('#desc-title').text('')
                                     $('#desc-body').html('Please select a stadium')
-
+                                    $('#credits').html('')
+                                    zoomLevel = 'nation'
+                                    buildTableTeam() 
                             }
                             
                             
@@ -400,16 +428,17 @@ d3.csv('stadium.csv', function(stadiums) {
                                 if ($('#desc-title').text() != 'United States/Canada') {
                                     $('#desc-title').text('')
                                     $('#desc-body').html('Please select a stadium')
-
+                                    $('#credits').html('')
+                                    $('.map-key').remove();
+                                    zoomLevel = 'nation'
+                                    buildTableTeam() 
                                 }
                                 else {
                                     
                                 }
                             }
                         }
-                        
-                        
-                
+                           
                         if (map.getZoom() < 11) {
 
                             markers.forEach(function(d) {
@@ -430,41 +459,62 @@ d3.csv('stadium.csv', function(stadiums) {
                                 d.setOptions({fillOpacity: .25})
                             })
                         }
-                    })
-                    
-
-                    
+                    })     
                     //Stadium goes out of bounds
                     map.addListener('bounds_changed', function() { 
                         if (focusMarker) {
                             var viewport = map.getBounds();
-                            if (!viewport.contains(focusMarker.getPosition())) {
+                            viewport.R.R = viewport.R.R - .2
+                            viewport.R.j = viewport.R.j + .2
+                            viewport.j.R = viewport.j.R + .2
+                            viewport.j.j = viewport.j.j - .2
+                            if (!viewport.contains(focusMarker)) {
                                 $('#desc-title').html('')
-                                $('#desc-body').html('Please select a stadium')
+                                $('#credits').html('')
+                                buildTableTeam()
+                                zoomLevel = 'nation'
                             }
                         }
+                        
+
                     })
                     
                     //reset
                     $('.reset.button').click(function() {
                         map.setZoom(defaultZoom)
                         map.setCenter(new google.maps.LatLng(39.833333, -98.583333))
-                    })
+                        buildTableTeam()          
+                   })
                     
-                    
-                // $('#viz-load').remove();
+                    function buildTableTeam() {
+                            
+                            $('#desc-body').html('Please select a team on the map or below:')
 
+                            var teamList = stadiums.map(function(d) {return d.team}).sort()
+                            
+                            $('#desc-body').append($('<div class="table-team"></div>')) 
+
+                            teamList.forEach(function(d,i) {
+                            
+                            var row = Math.floor(i/6)
+                            i%6 == 0 ? $('.table-team').append('<div class="table-row row-' + row + '"></div>') : null
+                            $('.row-' + row).append('<div class="table-cell" data-val="' + d + '">'+ d + '</div>') 
+                            })
+                            
+                            $('.table-cell').click(function() { //make this work based on the object
+                                var thisTeam = $(this).attr('data-val')
+                                testObj[thisTeam]()
+                            })              
+
+                        }       
+                  buildTableTeam()
+                    
+                    
             }
-                
-                
-                
-                
-            google.maps.event.addDomListener(window, 'load', initialize);
-        
-    })    
-    
-    
-    
+
+            initialize()
+    })   
+   
 })
     
     
@@ -478,12 +528,14 @@ d3.csv('stadium.csv', function(stadiums) {
 <!--<div class="map-title">US/Canada</div>-->
 <div id="viz-container">
     <div id="viz-title">Major League Food</div>
-    <div id="map-container" style="height: 500px;"></div>
+
+    <div id="map-container" style=""></div>
 
     <div id="desc-container">
         <div><div class='button reset'>Reset</div><div id="desc-title">United States/Canada</div></div>
         <div id="desc-body">Please select a stadium</div>
     </div>
+    <div id="credits"></div>
         <!--<div id="viz-load">LOADING...</div>-->
 
 </div>

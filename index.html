@@ -12,13 +12,22 @@
     body {
         margin: 0px;
         font-size: 18px;
+        
+    }
+    #iframe-dummy {
+        height: 955px;
     }
     
     #viz-container {
         width:100%;
-        height: 955px;
+        height: 100%;
         max-width: 740px;
-        position: relative;
+        display: flex;
+        flex-flow: column;
+        font-family: lato, arial;
+        
+      display: -webkit-flex;
+      -webkit-flex-flow: column;
     }
           
     #viz-title {
@@ -28,14 +37,20 @@
         padding-left: 5px;
         background-color: #8e001c;
         color: #FFFFFF;
+        flex: 0 0 auto;
+        -webkit-flex: 0 0 auto;
+
     }
    
    #map-container {
         width: 100%;
-        height:500px;
         max-width: 740px;
         border-top: 2px solid #8e001c;
         border-bottom: 2px solid #8e001c;
+        flex: 1 0 500px;
+        -webkit-flex: 1 0 500px;
+        min-height: 500px;
+
     }
     .map-title {
         position: absolute;
@@ -81,6 +96,11 @@
     
     .place-name {
         font-weight: 400;
+        font-size: 1rem;
+        margin-right: 5px;
+    }
+    .place-add {
+        
     }
     .place-desc {
         margin-top: 5px;
@@ -93,28 +113,35 @@
     .park-place-name {
         font-size: 1rem;
         font-weight: 600;
-        margin-bottom: 10px;
     }
     .place-dist {
-        font-size: .83rem;
-        margin-left: 5px;
+        font-size: .9rem;
         position:relative;
         top:-1px;
         display: inline-block;
     }
     
     #desc-container {
-        font-family: Lato, Arial;
-        margin-top: 20px;
-        margin-left: 5px;      
+        flex: 1 1 auto;
+        -webkit-flex: 1 1 auto;
+        min-height: 20px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 0 2%;
+    }
+    #desc-title-container {
+        flex: 0 0 auto;
+        -webkit-flex: 0 0 auto;
     }
     #desc-title {
         font-size: 1.6rem;
+        padding: 10px 2%;
     }
     #desc-body {
-        height: 300px;
-        padding-bottom: 20px;
-        font-size: .8rem;
+        flex: 1 1 auto;
+        -webkit-flex: 1 1 auto;
+        min-height: 300px;
+        font-size: .9rem;
         overflow-y: auto;
         clear: both;
     }
@@ -139,13 +166,11 @@
         background-color: #8e001c;
         color: white;
     }
-    
-    
+      
     #credits {
         background-color: #d3ceaa;
         color: black;
         border-top: 1px solid #8e001c;
-        margin-top: 5px;
         padding-top: 5px;
         padding-bottom: 5px;
         padding-left: 5px;
@@ -153,9 +178,8 @@
         font-size: .6rem;
         min-height: 19px;
         width: 100%;
-        position: absolute;
-        left: 0px;
-        bottom: 0px;
+        flex: 0 1 19px;
+        -webkit-flex: 0 1 19px;
     }
     #credits a {
         color: black;
@@ -180,9 +204,11 @@
     .reset {
         float: right;
         margin-right: 20px;
+        margin-left: 10px;
         margin-bottom: 10px;
+        margin-top: 20px;
         padding: 0 10px;
-        font-size: 12px;
+        font-size: 18px;
     }
     
     @media all and (max-width: 500px) {
@@ -200,7 +226,14 @@
             border: 1px solid black;
         }
          #map-container {
-            height:400px;
+           flex: 0 1 400px;
+           -webkit-flex: 0 1 400px;
+           height: 400px;
+           min-height: 400px;
+
+        }
+        .reset {
+            font-size: 14px;
         }
         
     }
@@ -209,17 +242,24 @@
             font-size: 10px;
         }
         #map-container {
-            height:300px;
+            flex: 0 1 300px;
+            -webkit-flex: 0 1 300px;
+            height: 300px;
+            min-height: 300px;
         }
         #desc-title {
             font-size: 1.2rem;
+            background-color: #FFFFFF;
         }
         .table-team {
             margin: 30px auto;
         }
         .table-cell {
-            padding: 3px;
+            padding: 5px;
             border: 1px solid black;
+        }
+        .reset {
+            font-size: 14px;
         }
     }
 </style>
@@ -275,8 +315,8 @@ d3.csv('stadium.csv', function(stadiums) {
             function clickPlace(e, mark) {
                     var newDesc = deliminator(e.desc)
                     var stadium = stadiums.find(function (d) { return d.team == e.team})
-                    infowindow.setContent('<div class="place-container"><div style="font-size: 18px;"><span class="place-name">' + e.placeName + '</span> <span class="place-dist">(' + (+e.dist).toFixed(1) + ' mi. from ' + stadium.name + ')</span></div>' + 
-                        '<a href="'+ e.url + '">' + e.url + '</a><br>' + e.address + '<br><p class="place-desc">' + newDesc + '</p></div>');
+                    infowindow.setContent('<div class="place-container"><span class="place-name">' + e.placeName + '</span> <span class="place-dist">(' + (+e.dist).toFixed(1) + ' mi. from ' + stadium.name + ')</span>' + 
+                        '<div class="place-add"><a href="'+ e.url + '">' + e.url + '</a></div><div class="place-add">' + e.address + '</div><p class="place-desc">' + newDesc + '</p></div>');
                     infowindow.open(map, mark);
             }
             
@@ -362,7 +402,7 @@ d3.csv('stadium.csv', function(stadiums) {
                             clickStadiumClose()
                         }
                                                 
-                        $('#desc-title').html(c.name + ' (' + c.teamName + ')') 
+                        $('#desc-title').html(c.name + ' <div style="display: inline-block;">(' + c.teamName + ')</div>') 
                         
                         var localStadium = inStadium.filter(function(d) {
                             return d.team == c.team
@@ -522,23 +562,29 @@ d3.csv('stadium.csv', function(stadiums) {
     
 
 </script>
+
+
 </head>
 
 <body>
-<!--<div class="map-title">US/Canada</div>-->
+<div id="iframe-dummy">
 <div id="viz-container">
     <div id="viz-title">Major League Food</div>
 
-    <div id="map-container" style=""></div>
+    <div id="map-container"></div>
+        <div id="desc-title-container"><div class='button reset'>Reset</div><div id="desc-title">United States/Canada</div></div>
 
     <div id="desc-container">
-        <div><div class='button reset'>Reset</div><div id="desc-title">United States/Canada</div></div>
-        <div id="desc-body">Please select a stadium</div>
+        <div id="desc-body"></div>
     </div>
     <div id="credits"></div>
-        <!--<div id="viz-load">LOADING...</div>-->
 
 </div>
+</div>
+
+
+
+
 </body>
 
 </html>

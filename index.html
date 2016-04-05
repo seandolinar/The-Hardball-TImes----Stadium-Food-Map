@@ -21,7 +21,6 @@
     #viz-container {
         width:100%;
         height: 100%;
-        max-width: 740px;
         display: flex;
         flex-flow: column;
         font-family: lato, arial;
@@ -44,7 +43,6 @@
    
    #map-container {
         width: 100%;
-        max-width: 740px;
         border-top: 2px solid #8e001c;
         border-bottom: 2px solid #8e001c;
         flex: 1 0 500px;
@@ -90,6 +88,13 @@
         margin-bottom: -3px;
     }
         
+    .key-symbol {
+        display: block;
+        max-height: 80px;
+        margin: auto;
+        
+    }
+    
     .gm-style-iw {
         font-family: Lato, Arial;
     }
@@ -137,6 +142,14 @@
         font-size: 1.6rem;
         padding: 10px 2%;
     }
+    .desc-inst {
+        text-align: center;
+        font-size: .9rem;
+        clear: both;
+    }
+    .desc-inst hr {
+        width: 80%;
+    }
     #desc-body {
         flex: 1 1 auto;
         -webkit-flex: 1 1 auto;
@@ -149,7 +162,7 @@
     .table-team {
         display: table;
         border-collapse: collapse;
-        margin: 30px auto;
+        margin: 10px auto;
     }
     .table-row {
         display: table-row;
@@ -172,14 +185,14 @@
         color: black;
         border-top: 1px solid #8e001c;
         padding-top: 5px;
-        padding-bottom: 5px;
+        padding-bottom: 10px;
         padding-left: 5px;
         font-family: Lato, Arial;
         font-size: .6rem;
-        min-height: 19px;
+        /*min-height: 19px;*/
         width: 100%;
-        flex: 0 1 19px;
-        -webkit-flex: 0 1 19px;
+        flex: 0 0 auto;
+        -webkit-flex: 0 0 auto;
     }
     #credits a {
         color: black;
@@ -316,7 +329,7 @@ d3.csv('stadium.csv', function(stadiums) {
                     var newDesc = deliminator(e.desc)
                     var stadium = stadiums.find(function (d) { return d.team == e.team})
                     infowindow.setContent('<div class="place-container"><span class="place-name">' + e.placeName + '</span> <span class="place-dist">(' + (+e.dist).toFixed(1) + ' mi. from ' + stadium.name + ')</span>' + 
-                        '<div class="place-add"><a href="'+ e.url + '">' + e.url + '</a></div><div class="place-add">' + e.address + '</div><p class="place-desc">' + newDesc + '</p></div>');
+                        '<div class="place-add"><a href="'+ e.url + '">' + e.url.replace(/http.*:\/\//, '') + '</a></div><div class="place-add">' + e.address + '</div><p class="place-desc">' + newDesc + '</p></div>');
                     infowindow.open(map, mark);
             }
             
@@ -402,7 +415,8 @@ d3.csv('stadium.csv', function(stadiums) {
                             clickStadiumClose()
                         }
                                                 
-                        $('#desc-title').html(c.name + ' <div style="display: inline-block;">(' + c.teamName + ')</div>') 
+                        $('#desc-title').html(c.name + ' <div style="display: inline-block;">(' + c.teamName + ')</div>')
+                        $('.desc-inst').html('In-Stadium Options<hr/>')
                         
                         var localStadium = inStadium.filter(function(d) {
                             return d.team == c.team
@@ -447,7 +461,8 @@ d3.csv('stadium.csv', function(stadiums) {
                         if (map.getZoom() < 6) {
                             $('#desc-title').html('United States/Canada')
                             $('#desc-body').html('Please select a stadium')
-                            $('#credits').html('')
+                            $('.desc-inst').html('')
+                            $('#credits').html('&nbsp;')
                             $('.map-key').remove();
                             zoomLevel = 'nation'
                             buildTableTeam() 
@@ -458,7 +473,8 @@ d3.csv('stadium.csv', function(stadiums) {
                             if ($('#desc-title').text() == 'United States/Canada') {
                                     $('#desc-title').text('')
                                     $('#desc-body').html('Please select a stadium')
-                                    $('#credits').html('')
+                                    $('.desc-inst').html('')
+                                    $('#credits').html('&nbsp;')
                                     zoomLevel = 'nation'
                                     buildTableTeam() 
                             }
@@ -467,8 +483,9 @@ d3.csv('stadium.csv', function(stadiums) {
                             if (map.getZoom() < 11) {
                                 if ($('#desc-title').text() != 'United States/Canada') {
                                     $('#desc-title').text('')
+                                    $('.desc-inst').html('')
                                     $('#desc-body').html('Please select a stadium')
-                                    $('#credits').html('')
+                                    $('#credits').html('&nbsp;')
                                     $('.map-key').remove();
                                     zoomLevel = 'nation'
                                     buildTableTeam() 
@@ -529,6 +546,8 @@ d3.csv('stadium.csv', function(stadiums) {
                     function buildTableTeam() {
                             
                             $('#desc-body').html('Please select a team on the map or below:')
+                            
+                            $('#desc-body').append('<img class="key-symbol" src="thtkey2.png" />')
 
                             var teamList = stadiums.map(function(d) {return d.team}).sort()
                             
@@ -569,15 +588,15 @@ d3.csv('stadium.csv', function(stadiums) {
 <body>
 <div id="iframe-dummy">
 <div id="viz-container">
-    <div id="viz-title">Major League Food</div>
+    <div id="viz-title">The Hardball Times Major League Food Map</div>
 
     <div id="map-container"></div>
-        <div id="desc-title-container"><div class='button reset'>Reset</div><div id="desc-title">United States/Canada</div></div>
+        <div id="desc-title-container"><div class='button reset'>Reset</div><div id="desc-title">United States/Canada</div><div class="desc-inst"></div></div>
 
     <div id="desc-container">
         <div id="desc-body"></div>
     </div>
-    <div id="credits"></div>
+    <div id="credits">&nbsp;</div>
 
 </div>
 </div>
